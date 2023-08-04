@@ -5,10 +5,12 @@ import Button from "react-bootstrap/Button";
 import { useForm, useFieldArray, FieldErrors } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import Style from "./UseForm.module.css";
-import * as yup from "yup";
-import schema from "./Schemas.jsx"; //??????
+import * as Yup from "yup";
+// import DatePicker from 'react-datepicker'      ????????? npm => error
+// import schema from "./Schemas.jsx"; //??????
 // import {yupResolver} from "@hookform/resolvers/yup"   // error???
-import { log } from "console";
+
+import particles from "./particles.js";
 
 // npm i -D @hookform/devtools
 //useFieldArray to register Phone number
@@ -105,7 +107,6 @@ export default function FormRef() {
   //6 onSubmit
   const onSubmit = (data: FormValues) => {
     console.log("Form Submitted", data); //call handelSubmit up
-  
   };
 
   const onError = (error: FieldErrors<FormValues>) => {
@@ -146,24 +147,46 @@ export default function FormRef() {
     setFocus("username");
   }, [setFocus]);
 
-  //check rePassword
-  const [password, setPassword] = useState('');
-  const [confirmPass, setConfirmPass] = useState('');
-  const [isError, setIsError] = useState('');
+  //local storage
+  // const [valuse, setValuse] = useState<FormValues> ({
+  //   email: "",
+  //   username: "",
 
-  const checkValidation = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-    setConfirmPass(event.target.value)
-    if(password != confirmPass){
-      setIsError("Confirm Password Should be Match With Password")
-    } else {
-      setIsError("")
+  // })
 
-    }
-  }
+  // //check rePassword
+  // const [password, setPassword] = useState("");
+  // const [confirmPass, setConfirmPass] = useState("");
+  // const [isError, setIsError] = useState("");
+
+  // const checkValidation = (event: {
+  //   target: { value: React.SetStateAction<string> };
+  // }) => {
+  //   setConfirmPass(event.target.value);
+  //   if (password != confirmPass) {
+  //     setIsError("Confirm Password Should be Match With Password");
+  //   } else {
+  //     setIsError("");
+  //   }
+  // };
+
+  const schemaPassword = Yup.object({
+    password: Yup.string()
+      .required("password is required")
+      .matches(/^[A-Z][a-z0-9]{5,10}$/, "password wrong"),
+    rePassword: Yup.string()
+      .required("rePassword is required")
+      .oneOf([Yup.ref("password"), ""], "password & rePassword not matched"),
+  });
 
   renderCount++;
   return (
     <>
+      {/* background                    ?????? */}
+      {/* <particles params = particles>
+
+    </particles> */}
+
       <p>UseForm</p>
       <h1>submit Form ({renderCount / 2})</h1>
       {/* <h2>Watched value:{JSON.stringify(watchForm)}</h2> */}
@@ -183,7 +206,10 @@ export default function FormRef() {
               id="username"
               // disabled
             />
-            <p className={Style.error}>{errors.username?.message}</p>
+
+            {errors.username && touchedFields.username && (
+              <p className="alert alert-danger">{errors.username.message}</p>
+            )}
           </FloatingLabel>
 
           <FloatingLabel label="Email address" className="mb-3 mt-2">
@@ -220,49 +246,52 @@ export default function FormRef() {
               placeholder="name@example.com"
               id="email"
             />
-            <p className={Style.error}>{errors.email?.message}</p>
+            {errors.email && touchedFields.email && (
+              <p className="alert alert-danger">{errors.email.message}</p>
+            )}
           </FloatingLabel>
 
-          <FloatingLabel label="Password">
+          <FloatingLabel label="Password" className="mb-3">
             <Form.Control
               {...register("pass", {
                 required: "This is required.",
                 pattern: {
                   value: /^[A-Z][a-z0-9]{5,10}$/,
                   message: "Invalid Password Format",
+                  // value: schemaPassword.password
                 },
-                onChange(event) {
-                    setPassword(event.target.value)
-                },
-                
+                // validate: schemaPassword
+                // onChange(event) {
+                //   setPassword(event.target.value);
+                // },
               })}
               type="password"
               placeholder="Password"
               id="pass"
               name="pass"
             />
+            {errors.pass && touchedFields.pass && (
+              <p className="alert alert-danger">{errors.pass?.message}</p>
+            )}
           </FloatingLabel>
-          <p className={Style.error}>{errors.pass?.message}</p>
 
           <FloatingLabel label="rePassword">
             <Form.Control
-              {...register("rePass", {
-                // required: "This is required.",
-                // pattern: {
-                //   value: /^[A-Z][a-z0-9]{5,10}$/,
-                //   message: "Invalid Password Format",
-                // },
-                onChange(event) {
-                  checkValidation(event)
-              },
-              validate: {
-                notConfirm: (e) => {
-                  return (
-                    password == confirmPass || "Not"
-                  );
-                }
-              }
-              })}
+              // {...register("rePass", {
+              //   // required: "This is required.",
+              //   // pattern: {
+              //   //   value: /^[A-Z][a-z0-9]{5,10}$/,
+              //   //   message: "Invalid Password Format",
+              //   // },
+              //   onChange(event) {
+              //     checkValidation(event);
+              //   },
+              //   // validate: {
+              //   //   notConfirm: (e) => {
+              //   //     return password.valueOf() == confirmPass.valueOf() || "Not";
+              //   //   },
+              //   },
+              // })}
               type="password"
               placeholder="rePassword"
               id="rePass"
@@ -270,7 +299,7 @@ export default function FormRef() {
             />
           </FloatingLabel>
           <p className={Style.error}>{errors.rePass?.message}</p>
-          <p className={Style.error}>{isError}</p>
+          {/* <p className={Style.error}>{isError}</p> */}
 
           <FloatingLabel label="Twitter" className="mb-3">
             <Form.Control
@@ -307,27 +336,35 @@ export default function FormRef() {
               id="phoneNumbers.0"
               name="phoneNumbers.0"
             />
-            <p className={Style.error}>
-              {errors.phoneNumbers && errors.phoneNumbers[0]?.message}
-            </p>
+
+            {errors.phoneNumbers && touchedFields.phoneNumbers && (
+              <p className="alert alert-danger">
+                {errors.phoneNumbers[0]?.message}
+              </p>
+            )}
           </FloatingLabel>
 
           <FloatingLabel label="Secondary PhoneNumber" className="mb-3">
             <Form.Control
               {...register("phoneNumbers.1", {
                 required: "This is required.",
-                pattern:{
+                pattern: {
                   value: /^01[0125][0-9]{8}$/,
                   message: "Invalid Phone Format",
-                }
+                },
               })}
               type="text"
               placeholder="Secondary PhoneNumber"
               id="phone2"
             />
-            <p className={Style.error}>
+            {/* <p className={Style.error}>
               {errors.phoneNumbers && errors.phoneNumbers[1]?.message}
-            </p>
+            </p> */}
+            {errors.phoneNumbers && touchedFields.phoneNumbers && (
+              <p className="alert alert-danger">
+                {errors.phoneNumbers[1]?.message}
+              </p>
+            )}
           </FloatingLabel>
 
           <FloatingLabel label="Age" className="mb-3">
@@ -344,7 +381,9 @@ export default function FormRef() {
               id="age"
             />
           </FloatingLabel>
-          <p className={Style.error}>{errors.age?.message}</p>
+          {errors.age && touchedFields.age && (
+            <p className="alert alert-danger">{errors.age?.message}</p>
+          )}
 
           <FloatingLabel label="dob" className="mb-3">
             <Form.Control
@@ -359,7 +398,10 @@ export default function FormRef() {
               placeholder="dob"
               id="dob"
             />
-            <p className={Style.error}>{errors.dob?.message}</p>
+            {/* <p className={Style.error}>{errors.dob?.message}</p> */}
+            {errors.dob && touchedFields.dob && (
+              <p className="alert alert-danger">{errors.dob?.message}</p>
+            )}
           </FloatingLabel>
         </Form>
 

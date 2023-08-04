@@ -11,6 +11,7 @@ import Cart from './Components/Cart/Cart';
 import Contact from './Components/Contact/Contact';
 import {HookRef} from './Components/HookRef/HookRef';
 import FormRef from './Components/FormRef/FormRef.tsx';
+import particles from './Components/FormRef/particles';
 
 
 let routers =  createBrowserRouter([
@@ -27,7 +28,8 @@ let routers =  createBrowserRouter([
   {path: 'contact', element: <Contact/>},
 
   {path: '*', element: <NotFound/>},
-] }
+] },
+<particles/>
 
 
 
